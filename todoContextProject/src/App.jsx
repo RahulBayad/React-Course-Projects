@@ -1,34 +1,65 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react'
 import './App.css'
+import { TodoProvider } from './contexts/todoContext'
+import Todo from './components/Todo'
+import TodoForm from './components/TodoForm'
 
 function App() {
-  const [count, setCount] = useState(0)
+  
+  const [todos , setTodos] = useState([])
+  // const [todo , setTodo] = useState("")
+  // const [isEditable , setIsEditable] = useState(false)
+  
+  const addTodo = (todo)=> {
+    setTodos((prevTodos)=> {
+      return [ ...prevTodos ,{id : Date.now() , todo} ]
+    })
+    // sessionStorage.removeItem("todos")
+    console.log(todos)
+  }
+  const editTodo = (updatedTodo , id)=> {
+    setTodos((prevTodos)=> (
+      prevTodos.map((todoVal)=>(
+        todoVal.id === id ? updatedTodo : todoVal
+      ))
+    ))
+  }
+
+  const deleteTodo = (id)=> {
+    setTodos((prevTodos) => prevTodos.filter((todoVal) => todoVal.id !== id ))
+  }
+  
+  useEffect(()=>{
+    const fetchTodos = JSON.parse(localStorage.getItem("todos"))
+    
+    if (fetchTodos && fetchTodos.length > 0) {
+      setTodos(fetchTodos)
+    }
+    // if(fetchTodos) setTodos(fetchTodos) 
+    },[])
+  
+  useEffect(()=>{
+    localStorage.setItem("todos" , JSON.stringify(todos))
+  },[todos])
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className=' m-auto max-w-4xl'>
+      <TodoProvider value={{todos , addTodo , editTodo , deleteTodo }}>
+        
+        <h1 className='text-3xl py-2 text-white font-semibold text-center pt-3'>Welcome to Todo Project</h1>
+        
+        <TodoForm/>
+        <div className='flex max-h-96 flex-col gap-2 overflow-y-auto'>
+
+        {
+          todos.map((todo) => (
+            <Todo key={todo.id} todo={todo} />
+          ))
+        }
+        </div>
+
+      </TodoProvider>
+    </div>
   )
 }
 
